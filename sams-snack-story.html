@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Sam's Snack Adventure — Waiting Room Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
+<style>
+
+/* ============================================================
+   DESIGN
+   ============================================================ */
+:root{
+  --paper:      #FDFBF6;
+  --paper-dim:  #F6F1E8;
+  --ink:        #21201C;
+  --red:        #E2432B;
+  --red-deep:   #B92E1B;
+  --blue:       #2E5AA8;
+  --blue-deep:  #1F3E78;
+  --yellow:     #F4B93E;
+  --green:      #6FAE8F;
+  --purple:     #8A6FB0;
+  --line:       #21201C;
+
+  --font-display: "Baloo 2", "Segoe UI Rounded", sans-serif;
+  --font-body:    "Nunito", "Segoe UI", sans-serif;
+
+  --shadow-hard: 5px 5px 0 var(--ink);
+  --shadow-soft: 0 10px 30px rgba(33,32,28,0.18);
+  --radius-card: 22px;
+}
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+
+body{
+  background:
+    radial-gradient(circle at 8% 15%, rgba(46,90,168,0.07) 0, transparent 40%),
+    radial-gradient(circle at 92% 80%, rgba(226,67,43,0.07) 0, transparent 42%),
+    var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before{
+  content:"";
+  position: fixed; inset:0;
+  background-image: radial-gradient(rgba(33,32,28,0.07) 1.4px, transparent 1.4px);
+  background-size: 26px 26px;
+  pointer-events:none;
+  z-index:0;
+}
+
+h1,h2,h3,.display{ font-family: var(--font-display); margin:0; }
+
+button{ font-family: inherit; }
+
+.visually-hidden{
+  position:absolute; width:1px; height:1px; overflow:hidden;
+  clip:rect(0 0 0 0); white-space:nowrap; border:0; padding:0; margin:-1px;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.stage{
+  position:relative;
+  z-index:1;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 20px 120px;
+}
+
+/* ---------- Hero ---------- */
+.hero{
+  display:flex;
+  align-items:center;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding: 18px 6px 10px;
+}
+
+.hero-text{ flex: 1 1 320px; min-width: 260px; }
+
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-family: var(--font-display);
+  font-weight:700;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blue-deep);
+  background: #E7EEFA;
+  border: 2.5px solid var(--blue-deep);
+  padding: 5px 14px 6px;
+  border-radius: 999px;
+  transform: rotate(-2deg);
+  margin-bottom: 14px;
+}
+.eyebrow .dot{ width:7px; height:7px; border-radius:50%; background: var(--red); display:inline-block; }
+
+.hero h1{
+  font-size: clamp(2.1rem, 4.6vw, 3.4rem);
+  line-height: 1.05;
+  font-weight: 800;
+  color: var(--ink);
+}
+.hero h1 span{ color: var(--red); }
+
+.hero p.lede{
+  font-size: 1.08rem;
+  line-height: 1.55;
+  color: #4a4740;
+  max-width: 46ch;
+  margin-top: 14px;
+  font-weight: 600;
+}
+
+.hero-cta-row{
+  display:flex; align-items:center; gap:14px; margin-top:18px; flex-wrap:wrap;
+}
+.tap-hint{
+  font-family: var(--font-display);
+  font-weight:700;
+  font-size: 1rem;
+  color: var(--red-deep);
+  display:flex; align-items:center; gap:8px;
+}
+.tap-hint svg{ width:26px; height:26px; animation: pointBounce 1.6s ease-in-out infinite; }
+
+@keyframes pointBounce{
+  0%,100%{ transform: translate(0,0) rotate(0deg); }
+  50%{ transform: translate(4px,-4px) rotate(-8deg); }
+}
+
+/* ---------- Sam! ---------- */
+.sam-wrap{
+  flex: 0 0 auto;
+  width: min(230px, 40vw);
+}
+.sam-figure{ width:100%; height:auto; display:block; }
+.sam-idle{ animation: samBob 3.6s ease-in-out infinite; transform-origin: 50% 85%; }
+@keyframes samBob{
+  0%,100%{ transform: translateY(0) rotate(0deg); }
+  50%{ transform: translateY(-6px) rotate(0.6deg); }
+}
+
+/* ============================================================
+   PODS
+   ============================================================ */
+.constellation{
+  position: relative;
+  margin-top: 26px;
+  min-height: 620px;
+}
+
+.pod{
+  --accent: var(--red);
+  --accent-deep: var(--red-deep);
+  position: absolute;
+  width: 208px;
+  height: 208px;
+  border:0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  filter: drop-shadow(4px 5px 0 rgba(33,32,28,0.9));
+  transition: transform 0.22s cubic-bezier(.2,1.4,.5,1), filter 0.22s ease;
+}
+.pod:hover, .pod:focus-visible{
+  transform: translateY(-6px) scale(1.045) rotate(var(--tilt, 0deg));
+}
+.pod:active{ transform: translateY(-1px) scale(0.98) rotate(var(--tilt, 0deg)); }
+.pod:focus-visible{ outline: none; }
+.pod:focus-visible .pod-blob path{ stroke-width: 6.5; }
+
+.pod-blob{ position:absolute; inset:0; width:100%; height:100%; }
+.pod-blob path{
+  fill: var(--accent);
+  stroke: var(--line);
+  stroke-width: 4.5;
+  paint-order: fill;
+}
+
+.pod-content{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:8px;
+  padding: 26px 30px;
+  text-align:center;
+  pointer-events:none;
+}
+
+.pod-icon{
+  width: 62px; height:62px;
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+}
+.pod-icon .pod-icon-art{ width:58px; height:58px; }
+
+.pod-label{
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.98rem;
+  line-height: 1.18;
+  color: var(--paper);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.16);
+}
+
+.pod-badge{
+  position:absolute;
+  top: -10px; right: 6px;
+  background: var(--paper);
+  border: 2.5px solid var(--line);
+  color: var(--line);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.75rem;
+  width: 30px; height:30px;
+  border-radius: 50%;
+  display:flex; align-items:center; justify-content:center;
+  transform: rotate(8deg);
+}
+
+.pod-visited-check{
+  position:absolute;
+  bottom: 10px; right: 14px;
+  width: 30px; height:30px;
+  background: var(--yellow);
+  border: 2.5px solid var(--line);
+  border-radius: 50%;
+  display:flex; align-items:center; justify-content:center;
+  transform: scale(0) rotate(-14deg);
+  transition: transform 0.35s cubic-bezier(.3,1.8,.4,1);
+}
+.pod[data-visited="true"] .pod-visited-check{ transform: scale(1) rotate(-14deg); }
+.pod-visited-check svg{ width:16px; height:16px; }
+
+/* Pod placement — a hand-scattered layout (percent-based so it scales) */
+.pod[data-pod="snack"]{ --tilt: -4deg; left: 2%;  top: 4%;  transform: rotate(var(--tilt)); }
+.pod[data-pod="mood"]{  --tilt: 3deg;  left: 30%; top: 0%;  transform: rotate(var(--tilt)); }
+.pod[data-pod="nuance"]{--tilt: -3deg; left: 58%; top: 10%; transform: rotate(var(--tilt)); }
+.pod[data-pod="gut"]{   --tilt: 4deg;  left: 10%; top: 42%; transform: rotate(var(--tilt)); }
+.pod[data-pod="money"]{ --tilt: -5deg; left: 40%; top: 46%; transform: rotate(var(--tilt)); }
+.pod[data-pod="unknown"]{--tilt: 3deg; left: 68%; top: 44%; transform: rotate(var(--tilt)); }
+
+.pod:hover, .pod:focus-visible{ transform: translateY(-6px) scale(1.045) rotate(var(--tilt)); }
+.pod:active{ transform: translateY(-1px) scale(0.98) rotate(var(--tilt)); }
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+.tracker{
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 40;
+  background: var(--ink);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 9px 16px;
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  box-shadow: var(--shadow-soft);
+}
+.tracker-label{
+  font-family: var(--font-display);
+  font-weight:700;
+  font-size: 0.78rem;
+  color: var(--paper);
+  letter-spacing:0.02em;
+  margin-right: 4px;
+}
+.tracker-dot{
+  width: 15px; height:15px;
+  border-radius: 50%;
+  background: #514E45;
+  border: 2px solid #78756A;
+  transition: all 0.3s cubic-bezier(.3,1.6,.5,1);
+}
+.tracker-dot[data-done="true"]{
+  background: var(--yellow);
+  border-color: var(--paper);
+  transform: scale(1.18);
+}
+
+.tracker-complete{
+  position: fixed;
+  left: 50%; bottom: 68px;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--yellow);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 10px 18px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.92rem;
+  box-shadow: var(--shadow-hard);
+  opacity:0;
+  pointer-events:none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 40;
+  white-space:nowrap;
+}
+.tracker-complete.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+/* ============================================================
+   SCENE PANEL (modal)
+   ============================================================ */
+.overlay{
+  position: fixed; inset:0;
+  background: rgba(33,32,28,0.55);
+  backdrop-filter: blur(2px);
+  display:flex; align-items:center; justify-content:center;
+  padding: 24px;
+  z-index: 100;
+  opacity:0; pointer-events:none;
+  transition: opacity 0.25s ease;
+}
+.overlay.open{ opacity:1; pointer-events:auto; }
+
+.panel{
+  --accent: var(--red);
+  --accent-deep: var(--red-deep);
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  border-radius: var(--radius-card);
+  max-width: 760px;
+  width:100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 9px 9px 0 var(--ink);
+  transform: translateY(24px) scale(0.97);
+  transition: transform 0.28s cubic-bezier(.2,1.3,.4,1);
+  position:relative;
+}
+.overlay.open .panel{ transform: translateY(0) scale(1); }
+
+.panel-top{
+  background: var(--accent);
+  border-bottom: 4px solid var(--ink);
+  border-radius: 18px 18px 0 0;
+  padding: 22px 60px 22px 26px;
+  position: relative;
+}
+.panel-kicker{
+  font-family: var(--font-display);
+  font-weight:700;
+  font-size: 0.78rem;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color: rgba(255,255,255,0.88);
+}
+.panel-title{
+  font-size: 1.6rem;
+  color: var(--paper);
+  font-weight: 800;
+  margin-top: 4px;
+  line-height:1.15;
+}
+.panel-close{
+  position:absolute; top:16px; right:16px;
+  width:40px; height:40px;
+  border-radius:50%;
+  border: 2.5px solid var(--ink);
+  background: var(--paper);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition: transform 0.15s ease;
+}
+.panel-close:hover{ transform: rotate(90deg); }
+.panel-close svg{ width:18px; height:18px; }
+
+.panel-body{
+  padding: 26px 28px 30px;
+  display:flex;
+  gap:24px;
+  flex-wrap:wrap;
+}
+
+.panel-scene-art{
+  flex: 0 0 auto;
+  width: 180px;
+}
+.scene-img-slot{
+  width:180px; height:180px;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  background: var(--paper-dim);
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+  position:relative;
+  transform: rotate(-2deg);
+}
+.scene-img-slot .scene-art{ width:118px; height:118px; }
+
+.sam-mini-wrap{ margin-top:14px; display:flex; justify-content:center; }
+.sam-mini{ width:96px; height:auto; }
+
+.panel-story{ flex: 1 1 300px; min-width: 240px; }
+
+.story-line{
+  font-size: 1.06rem;
+  line-height:1.6;
+  font-weight:600;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+.story-line:first-child{
+  font-family: var(--font-display);
+  font-size: 1.14rem;
+  font-weight: 700;
+  color: var(--accent-deep);
+}
+
+.science-note{
+  margin-top: 16px;
+  background: var(--paper-dim);
+  border: 2.5px dashed var(--accent-deep);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display:flex; gap:10px;
+  align-items:flex-start;
+}
+.science-note svg{ width:22px; height:22px; flex:0 0 auto; margin-top:2px; }
+.science-note p{
+  margin:0;
+  font-size: 0.92rem;
+  line-height:1.5;
+  color:#4a4740;
+  font-weight: 700;
+}
+.science-note p b{ color: var(--ink); }
+
+.panel-next{
+  margin-top: 18px;
+  display:flex; justify-content:flex-end;
+}
+.next-btn{
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--paper);
+  background: var(--accent-deep);
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 10px 20px;
+  cursor:pointer;
+  display:flex; align-items:center; gap:8px;
+  transition: transform 0.15s ease;
+}
+.next-btn:hover{ transform: translateX(3px); }
+.next-btn svg{ width:16px; height:16px; }
+
+/* ============================================================
+   GROWN UP button prt
+   ============================================================ */
+.grownup-toggle{
+  position: fixed;
+  top: 18px; right: 18px;
+  z-index: 40;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.94rem;
+  background: var(--blue-deep);
+  color: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 13px 22px;
+  cursor: pointer;
+  display:flex; align-items:center; gap:9px;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  animation: guPulse 2.8s ease-in-out infinite;
+}
+.grownup-toggle:hover{ transform: translateY(-2px) scale(1.03); box-shadow: 5px 6px 0 var(--ink); animation-play-state: paused; }
+.grownup-toggle svg{ width:19px; height:19px; }
+@keyframes guPulse{
+  0%,100%{ box-shadow: 4px 4px 0 var(--ink); }
+  50%{ box-shadow: 4px 4px 0 var(--ink), 0 0 0 6px rgba(31,62,120,0.18); }
+}
+@media (prefers-reduced-motion: reduce){
+  .grownup-toggle{ animation: none; }
+}
+
+.grownup-drawer{
+  position: fixed; inset:0;
+  z-index: 110;
+  display:flex; justify-content:flex-end;
+  background: rgba(33,32,28,0.5);
+  opacity:0; pointer-events:none;
+  transition: opacity 0.25s ease;
+}
+.grownup-drawer.open{ opacity:1; pointer-events:auto; }
+.drawer-panel{
+  width: min(420px, 92vw);
+  height: 100%;
+  background: var(--paper);
+  border-left: 4px solid var(--ink);
+  padding: 24px 24px 40px;
+  overflow-y:auto;
+  transform: translateX(24px);
+  transition: transform 0.28s cubic-bezier(.2,1.3,.4,1);
+}
+.grownup-drawer.open .drawer-panel{ transform: translateX(0); }
+
+.drawer-panel h2{
+  font-size: 1.4rem;
+  color: var(--blue-deep);
+  margin-bottom: 8px;
+}
+.drawer-panel > p{
+  font-size:0.95rem; line-height:1.55; color:#4a4740; font-weight:600;
+  margin-bottom: 18px;
+}
+.source-card{
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  background: var(--paper-dim);
+}
+.source-card .src-tag{
+  font-family: var(--font-display);
+  font-weight:700;
+  font-size:0.7rem;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  color: var(--blue-deep);
+}
+.source-card p{
+  font-size:0.87rem; line-height:1.48; margin: 4px 0 0; color:#3d3a34; font-weight:600;
+}
+.drawer-close{
+  position:absolute; top:16px; right:16px;
+  width:36px; height:36px; border-radius:50%;
+  border:2.5px solid var(--ink); background:var(--paper);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.drawer-close svg{ width:16px; height:16px; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer-strip{
+  margin-top: 46px;
+  padding: 16px 6px 4px;
+  border-top: 3px dashed rgba(33,32,28,0.25);
+  font-size: 0.82rem;
+  color: #7a766c;
+  font-weight: 600;
+  text-align:center;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 880px){
+  .constellation{
+    position: static;
+    min-height: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 18px;
+    padding-top: 6px;
+  }
+  .pod{
+    position: static;
+    width: 165px; height:165px;
+  }
+  .pod-label{ font-size:0.86rem; }
+  .pod-icon{ width:50px; height:50px; }
+}
+
+@media (max-width: 460px){
+  .pod{ width: 148px; height:148px; }
+  .grownup-toggle span.gu-label{ display:none; }
+  .panel-body{ flex-direction: column; }
+  .panel-scene-art{ width:100%; display:flex; justify-content:center; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .sam-idle{ animation: none; }
+  .tap-hint svg{ animation: none; }
+  .pod, .panel, .overlay, .drawer-panel, .grownup-drawer{ transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     GROWN-UP list
+     ============================================================ -->
+<button class="grownup-toggle" id="grownupToggle" aria-haspopup="dialog" aria-controls="grownupDrawer">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h5"/></svg>
+  <span class="gu-label">For parents</span>
+</button>
+
+<div class="grownup-drawer" id="grownupDrawer" role="dialog" aria-modal="true" aria-labelledby="grownupTitle">
+  <div class="drawer-panel">
+    <button class="drawer-close" id="drawerClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <h2 id="grownupTitle">The research behind Sam</h2>
+    <p>Sam isn't real, unfortunately. But, I made him up to turn a semester of research into something visible rather than some pile of stats. Here's what it's really built on. This is a young, still-developing area of research, so I don't think any one study here is the final word.</p>
+
+    <div class="source-card">
+      <div class="src-tag">Diet &amp; mood link</div>
+      <p><b>Jafari et al., 2026</b> — 263 teen girls in Tehran; more ultra-processed food was tied to meaningfully higher odds of depression, stress, and anxiety, even after accounting for BMI and activity. It's survey-based, so I'd call this an association worth taking seriously, not proof.</p>
+    </div>
+    <div class="source-card">
+      <div class="src-tag">Correlation isn't causation</div>
+      <p><b>Winpenny et al., 2018</b> — 603 UK teens (the ROOTS cohort). A similar diet–depression link mostly disappeared once smoking and alcohol use were controlled for, and was gone completely by a later check-in. This is the study that made me rethink the first one.</p>
+    </div>
+    <div class="source-card">
+      <div class="src-tag">Access &amp; income</div>
+      <p><b>Dunford et al., 2025</b> — ~33 million grocery purchases across almost 60,000 U.S. households. Lower-income, lower-education groups bought a modestly higher, statistically significant share of ultra-processed food.</p>
+    </div>
+    <div class="source-card">
+      <div class="src-tag">Why income might matter</div>
+      <p><b>Pereira et al., 2026</b> — 128 families in rural riverside communities in Brazil. Lower income predicted more food insecurity, and it was the food insecurity — not income on its own — that predicted a harder quality of life for the kids.</p>
+    </div>
+    <div class="source-card">
+      <div class="src-tag">A possible mechanism</div>
+      <p><b>Dr. Uma Naidoo, via Aujla, 2022</b> — On The Doctor's Kitchen podcast, nutritional psychiatrist Dr. Uma Naidoo talks about "psychobiotics": gut bacteria, shaped by diet, potentially influencing mood alongside (not instead of) other mental health care.</p>
+    </div>
+    <p style="font-size:0.78rem; color:#918d81; margin-top:10px;">Adapted from my own research reflection for a Social Psychology "Big Question" project, Summer 2026.</p>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN STAGE
+     ============================================================ -->
+<div class="stage">
+
+  <header class="hero">
+    <div class="hero-text">
+      <span class="eyebrow"><span class="dot"></span> While you wait..</span>
+      <h1>Sam's <span>Snack</span> Story</h1>
+      <p class="lede">Meet Sam! Every bubble below is a little moment from Sam's day. Touch any to see how food, mood, and everyday life connect!</p>
+      <div class="hero-cta-row">
+        <span class="tap-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5V6a2 2 0 1 1 4 0v4.5"/><path d="M13 10V4.5a2 2 0 1 1 4 0V11"/><path d="M17 10.5V8a2 2 0 1 1 4 0v6c0 3.5-2.5 6.5-6 6.5h-2c-2.2 0-3.4-.7-4.7-2.2L5 14.8c-.7-.9-.5-2 .4-2.6.8-.5 1.8-.3 2.5.4L9 14"/></svg>
+          Tap a bubble to start
+        </span>
+      </div>
+    </div>
+
+    <div class="sam-wrap">
+      <svg class="sam-figure sam-idle" viewBox="0 0 220 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sam, a friendly cartoon kid character, waving">
+        <!-- shadow -->
+        <ellipse cx="110" cy="246" rx="58" ry="10" fill="#21201C" opacity="0.12"/>
+        <!-- body -->
+        <path d="M62 176c-10 22-14 48 2 62 20 18 66 18 86-1 15-14 11-40 1-61-9-19-24-30-45-30s-34 11-44 30Z" fill="#2E5AA8" stroke="#21201C" stroke-width="5"/>
+        <!-- arm waving -->
+        <path d="M150 168c14-6 27-20 30-36" fill="none" stroke="#21201C" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="184" cy="128" r="12" fill="#F4B93E" stroke="#21201C" stroke-width="5"/>
+        <!-- other arm -->
+        <path d="M70 172c-12 2-22 12-25 26" fill="none" stroke="#21201C" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="42" cy="202" r="11" fill="#F4B93E" stroke="#21201C" stroke-width="5"/>
+        <!-- head -->
+        <circle cx="110" cy="104" r="58" fill="#F4B93E" stroke="#21201C" stroke-width="5"/>
+        <!-- hair tuft -->
+        <path d="M78 66c6-16 22-26 34-24M132 62c8-12 22-16 32-8" fill="none" stroke="#21201C" stroke-width="5" stroke-linecap="round"/>
+        <!-- cheeks -->
+        <circle cx="80" cy="118" r="9" fill="#E2432B" opacity="0.35"/>
+        <circle cx="140" cy="118" r="9" fill="#E2432B" opacity="0.35"/>
+        <!-- eyes -->
+        <circle cx="90" cy="100" r="5.5" fill="#21201C"/>
+        <circle cx="130" cy="100" r="5.5" fill="#21201C"/>
+        <!-- smile -->
+        <path d="M88 122c8 10 34 10 42 0" fill="none" stroke="#21201C" stroke-width="5" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       POD CONSTELLATION
+       ============================================================ -->
+  <nav class="constellation" aria-label="Sam's story bubbles">
+
+    <button class="pod" data-pod="snack" style="--accent:#E2432B; --accent-deep:#B92E1B;">
+      <span class="pod-badge">1</span>
+      <svg class="pod-blob" viewBox="0 0 200 200" preserveAspectRatio="none"><path d="M100 8c30-3 61 9 74 33 12 22 4 47-2 68-7 25-17 52-46 61-30 10-64-1-84-23-19-21-27-52-18-80 9-27 32-45 46-53 9-5 20-5 30-6Z"/></svg>
+      <span class="pod-content">
+        <span class="pod-icon">
+          <svg class="pod-icon-art" viewBox="0 0 64 64" fill="none" stroke="#FDFBF6" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="30" y="10" width="18" height="24" rx="3" transform="rotate(14 39 22)"/>
+            <path d="M33 15l12 15M45 14l-11 16" stroke-width="2.4" opacity="0.75"/>
+            <circle cx="20" cy="34" r="12"/>
+            <path d="M14 34c1-5 4-8 6-9M20 26v3" stroke-width="2.4"/>
+            <circle cx="20" cy="34" r="3" fill="#FDFBF6" stroke="none"/>
+          </svg>
+        </span>
+        <span class="pod-label">Sam's Snack Choice</span>
+      </span>
+    </button>
+
+    <button class="pod" data-pod="mood" style="--accent:#2E5AA8; --accent-deep:#1F3E78;">
+      <span class="pod-badge">2</span>
+      <svg class="pod-blob" viewBox="0 0 200 200" preserveAspectRatio="none"><path d="M96 6c33 2 58 22 70 48 10 22 2 44-8 63-11 21-25 44-52 50-28 6-58-6-76-27-17-20-22-49-12-75 9-24 27-42 44-51 10-6 22-9 34-8Z"/></svg>
+      <span class="pod-content">
+        <span class="pod-icon">
+          <svg class="pod-icon-art" viewBox="0 0 64 64" fill="none" stroke="#FDFBF6" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="32" cy="30" r="19"/>
+            <path d="M23 34c3 4 15 4 18 0" stroke-linecap="round"/>
+            <path d="M22 21l6 3M42 21l-6 3" stroke-width="2.6"/>
+            <circle cx="24" cy="27" r="1.8" fill="#FDFBF6"/>
+            <circle cx="40" cy="27" r="1.8" fill="#FDFBF6"/>
+            <path d="M18 50c4-3 24-3 28 0" stroke-width="2.2" opacity="0.65"/>
+          </svg>
+        </span>
+        <span class="pod-label">Sam's Mood That Day</span>
+      </span>
+    </button>
+
+    <button class="pod" data-pod="nuance" style="--accent:#8A6FB0; --accent-deep:#5F4A83;">
+      <span class="pod-badge">3</span>
+      <svg class="pod-blob" viewBox="0 0 200 200" preserveAspectRatio="none"><path d="M104 10c28 4 49 22 62 45 14 25 10 53-4 75-13 21-36 36-62 36-27 0-52-14-65-37-13-23-14-53 0-76 13-22 36-38 51-42 6-2 12-2 18-1Z"/></svg>
+      <span class="pod-content">
+        <span class="pod-icon">
+          <svg class="pod-icon-art" viewBox="0 0 64 64" fill="none" stroke="#FDFBF6" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="20" cy="42" r="9" opacity="0.55"/>
+            <path d="M15 45c1.6 2.2 7 2.2 8.6 0" opacity="0.55" stroke-width="2.4"/>
+            <path d="M30 20a9 9 0 1 1 12.6 8.2c-3.4 2.4-3.4 5.6-3.4 9.2" stroke-width="3.4"/>
+            <circle cx="39" cy="43.5" r="2.1" fill="#FDFBF6" stroke="none"/>
+          </svg>
+        </span>
+        <span class="pod-label">Wait, Is It Really the Food?</span>
+      </span>
+    </button>
+
+    <button class="pod" data-pod="gut" style="--accent:#6FAE8F; --accent-deep:#487560;">
+      <span class="pod-badge">4</span>
+      <svg class="pod-blob" viewBox="0 0 200 200" preserveAspectRatio="none"><path d="M98 8c27-2 55 8 70 30 15 21 14 48 4 71-10 24-30 45-58 49-29 4-59-8-76-31-16-22-18-51-5-76 12-24 34-40 46-41 6-1 13-2 19-2Z"/></svg>
+      <span class="pod-content">
+        <span class="pod-icon">
+          <svg class="pod-icon-art" viewBox="0 0 64 64" fill="none" stroke="#FDFBF6" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 46c0-13 4-24 11-24 5.5 0 5.5 7.5 11 7.5s5.5-9.5 12-9.5c7.5 0 10 11 7.5 20-2.7 8.2-10 12.5-20.2 12.5S17 50.5 17 46Z"/>
+            <path d="M28 30v-6M36 27v-5" stroke-width="2.4" opacity="0.75"/>
+            <circle cx="28" cy="21.5" r="2.3" fill="#FDFBF6" stroke="none"/>
+            <circle cx="36" cy="19" r="2.3" fill="#FDFBF6" stroke="none"/>
+          </svg>
+        </span>
+        <span class="pod-label">Sam's Gut Garden</span>
+      </span>
+    </button>
+
+    <button class="pod" data-pod="money" style="--accent:#F4B93E; --accent-deep:#B9860F;">
+      <span class="pod-badge">5</span>
+      <svg class="pod-blob" viewBox="0 0 200 200" preserveAspectRatio="none"><path d="M100 9c31-2 60 12 72 37 11 23 3 46-4 66-8 24-19 49-47 57-29 8-61-3-80-25-18-21-24-50-13-77 10-25 32-41 45-49 9-5 18-8 27-9Z"/></svg>
+      <span class="pod-content">
+        <span class="pod-icon">
+          <svg class="pod-icon-art" viewBox="0 0 64 64" fill="none" stroke="#FDFBF6" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 28l4-9h28l4 9" stroke-width="2.8"/>
+            <path d="M12 28h40l-3 20a4 4 0 0 1-4 3.5H19a4 4 0 0 1-4-3.5Z"/>
+            <circle cx="32" cy="37" r="6.5" stroke-width="2.6"/>
+            <path d="M32 34v6M29.5 36h5" stroke-width="2" opacity="0.8"/>
+          </svg>
+        </span>
+        <span class="pod-label">The Money Question</span>
+      </span>
+    </button>
+
+    <button class="pod" data-pod="unknown" style="--accent:#E2432B; --accent-deep:#B92E1B;">
+      <span class="pod-badge">6</span>
+      <svg class="pod-blob" viewBox="0 0 200 200" preserveAspectRatio="none"><path d="M102 7c29 1 56 15 69 39 13 24 8 50-3 72-11 23-31 43-58 44-28 1-55-13-70-35-15-22-18-52-5-76 12-24 34-38 45-42 7-3 15-3 22-2Z"/></svg>
+      <span class="pod-content">
+        <span class="pod-icon">
+          <svg class="pod-icon-art" viewBox="0 0 64 64" fill="none" stroke="#FDFBF6" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="12" y="14" width="16" height="16" rx="2.5" opacity="0.5"/>
+            <rect x="36" y="34" width="16" height="16" rx="2.5" opacity="0.5"/>
+            <path d="M32 22a8 8 0 1 1 11.2 7.3c-3 2.1-3 4.9-3 8.2" stroke-width="3.4"/>
+            <circle cx="40" cy="42.5" r="2.1" fill="#FDFBF6" stroke="none"/>
+          </svg>
+        </span>
+        <span class="pod-label">What We Still Don't Know</span>
+      </span>
+    </button>
+
+  </nav>
+
+  <p class="footer-strip">John Leiton - How is processed food intake in children and teens associated with mood problems such as anxiety and depression, and how could family income factor into this relationship?.</p>
+</div>
+
+<!-- ============================================================
+     PROGRESS
+     ============================================================ -->
+<div class="tracker-complete" id="trackerComplete">You explored Sam's whole story! ⭐</div>
+<div class="tracker" role="status" aria-label="Progress through Sam's story">
+  <span class="tracker-label">Sam's story</span>
+  <span class="tracker-dot" data-dot="snack"></span>
+  <span class="tracker-dot" data-dot="mood"></span>
+  <span class="tracker-dot" data-dot="nuance"></span>
+  <span class="tracker-dot" data-dot="gut"></span>
+  <span class="tracker-dot" data-dot="money"></span>
+  <span class="tracker-dot" data-dot="unknown"></span>
+</div>
+
+<!-- ============================================================
+     SCENE OVERLAY 
+     ============================================================ -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+  <div class="panel" id="panel">
+    <div class="panel-top">
+      <div class="panel-kicker" id="panelKicker">Kicker</div>
+      <h2 class="panel-title" id="panelTitle">Title</h2>
+      <button class="panel-close" id="panelClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#21201C" stroke-width="2.6" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </div>
+    <div class="panel-body">
+      <div class="panel-scene-art">
+        <div class="scene-img-slot" id="sceneImgSlot">
+          <svg class="scene-art" id="sceneArt" viewBox="0 0 64 64" fill="none" stroke="#21201C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-labelledby="panelTitle"></svg>
+        </div>
+        <div class="sam-mini-wrap">
+          <svg class="sam-mini" id="samMini" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sam"></svg>
+        </div>
+      </div>
+      <div class="panel-story">
+        <div id="storyLines"></div>
+        <div class="science-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#21201C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="3.4"/></svg>
+          <p id="scienceText"></p>
+        </div>
+        <div class="panel-next">
+          <button class="next-btn" id="nextPodBtn">
+            <span id="nextPodLabel">Next bubble</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#FDFBF6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ------------------------------------------------------------
+     POD CONTENT DATA
+     ------------------------------------------------------------ */
+  var PODS = {
+    snack: {
+      order: 0,
+      accent: "#E2432B", accentDeep: "#B92E1B",
+      kicker: "Moment one",
+      title: "Sam's Snack Choice",
+      sceneArt: '<rect x="8" y="9" width="21" height="27" rx="3.5" transform="rotate(-8 18.5 22.5)"/><path d="M12 20l14 3M14 27l11 2" stroke-width="2" opacity="0.7"/><circle cx="46" cy="27" r="12"/><path d="M40 27h12M46 21v12" stroke-width="2.4"/><circle cx="42" cy="20" r="2.6" fill="#21201C"/><circle cx="50" cy="21" r="2.2" fill="#21201C" opacity="0.7"/>',
+      samState: "neutral",
+      lines: [
+        "3:15. Sam's home from school and staring into the cupboard.",
+        "Shiny snack cake on one side. Grapes and almonds on the other. Sam grabs the snack cake — a totally normal kid move, no \"wrong answer\" here.",
+        "But it got researchers curious: what tends to happen on days when packaged snacks like this one make up most of what a kid eats?"
+      ],
+      science: "Foods like Sam's snack cake are called <b>ultra-processed foods</b> — packaged, shelf-stable, made mostly from refined ingredients rather than whole ones. That's the category this whole project is about."
+    },
+    mood: {
+      order: 1,
+      accent: "#2E5AA8", accentDeep: "#1F3E78",
+      kicker: "Moment two",
+      title: "Sam's Mood That Day",
+      sceneArt: '<circle cx="24" cy="27" r="15"/><path d="M17 33c3 4 11 4 14 0" stroke-linecap="round"/><circle cx="19" cy="23" r="1.8" fill="#21201C"/><circle cx="29" cy="23" r="1.8" fill="#21201C"/><path d="M40 16v20M46 10v32M52 20v14" stroke-width="2.6" stroke-linecap="round" opacity="0.55"/>',
+      samState: "foggy",
+      lines: [
+        "By dinner, on days that are mostly packaged and sugary, Sam's a little foggier. More snappy, more \"everything is annoying.\"",
+        "On days with more fruit, nuts, homemade stuff — Sam just feels steadier.",
+        "One day doesn't prove anything on its own. But researchers who tracked this across a lot of teens over time noticed a pattern worth a closer look."
+      ],
+      science: "A study of <b>263 teen girls in Tehran</b> found that the ones eating more ultra-processed food had meaningfully higher odds of depression, stress, and anxiety symptoms — even after accounting for weight and activity level."
+    },
+    nuance: {
+      order: 2,
+      accent: "#8A6FB0", accentDeep: "#5F4A83",
+      kicker: "Moment three",
+      title: "Wait, Is It Really the Food?",
+      sceneArt: '<circle cx="16" cy="34" r="10"/><path d="M10 37c1.8 2.6 8 2.6 9.8 0" stroke-linecap="round"/><circle cx="12.5" cy="31" r="1.6" fill="#21201C"/><circle cx="19.5" cy="31" r="1.6" fill="#21201C"/><path d="M32 15a9.5 9.5 0 1 1 13.3 8.7c-3.6 2.5-3.6 5.9-3.6 9.7" stroke-width="3.4"/><circle cx="41.7" cy="38.8" r="2.2" fill="#21201C"/>',
+      samState: "puzzled",
+      lines: [
+        "Sam's friend Robin eats snack cakes constantly and seems totally fine. Cheerful, energetic, no dips at all.",
+        "So was the last bubble wrong? Not exactly — mood's tangled up with sleep, stress, friendships, and a hundred other things, not just food.",
+        "One long study actually caught this in real data: a food-mood link that looked real at first, then mostly faded once other factors got factored in."
+      ],
+      science: "Following <b>603 UK teens</b> for years, researchers found the ultra-processed food–depression link mostly disappeared once they adjusted for things like smoking and alcohol use, and was gone completely at a later check-in. A link in one study isn't proof that one thing causes the other."
+    },
+    gut: {
+      order: 3,
+      accent: "#6FAE8F", accentDeep: "#487560",
+      kicker: "Moment four",
+      title: "Sam's Gut Garden",
+      sceneArt: '<path d="M12 46c0-16 5-29 14-29 6.5 0 6.5 9 13 9s6.5-11.5 15-11.5c9 0 12.5 13.5 9.5 24.5-3 10-13 15-25 15S12 51 12 46Z"/><path d="M24 29v-7M34 26v-6" stroke-width="2.6" opacity="0.7"/><circle cx="24" cy="19" r="2.6" fill="#21201C"/><circle cx="34" cy="17" r="2.6" fill="#21201C"/>',
+      samState: "curious",
+      lines: [
+        "Think of it like a tiny garden inside Sam's belly, full of bacteria that help digest food.",
+        "Different foods water that garden differently. Some help the \"good\" bacteria grow — the kind that may help make chemicals linked to mood.",
+        "It's a young field, still figuring itself out. But the basic idea is that gut and brain talk to each other more than people used to think."
+      ],
+      science: "This area is called <b>psychobiotics</b> — how gut bacteria, shaped by diet, might influence mental health. Nutritional psychiatrist Dr. Uma Naidoo has talked about it as a promising area that could work alongside, not instead of, other mental health care."
+    },
+    money: {
+      order: 4,
+      accent: "#F4B93E", accentDeep: "#B9860F",
+      kicker: "Moment five",
+      title: "The Money Question",
+      sceneArt: '<path d="M9 24l3.5-8h23l3.5 8" stroke-width="2.6"/><path d="M7 24h35l-2.7 17.5A3.6 3.6 0 0 1 35.8 44H15.2a3.6 3.6 0 0 1-3.5-2.5Z"/><circle cx="24" cy="31.5" r="5.6" stroke-width="2.4"/><circle cx="46" cy="14" r="7"/><path d="M46 10.5v7M42.7 14h6.6" stroke-width="1.8" opacity="0.75"/>',
+      samState: "thoughtful",
+      lines: [
+        "Down the street, another family's doing the grocery run on a tight budget. Packaged snacks are usually the cheapest, longest-lasting, easiest option — way more than fresh produce.",
+        "That's not caring less about health. It's just what fits the budget.",
+        "And the real story isn't that low income changes a kid's mood directly — it's what tight money leads to along the way."
+      ],
+      science: "A study of nearly <b>60,000 U.S. households</b> found a modestly higher, statistically significant share of ultra-processed food purchases among lower-income, lower-education groups. Separately, a study of <b>128 families in Brazil</b> found lower income predicted more food insecurity — and food insecurity, not income on its own, predicted a harder time for kids' overall quality of life."
+    },
+    unknown: {
+      order: 5,
+      accent: "#E2432B", accentDeep: "#B92E1B",
+      kicker: "Last stop",
+      title: "What We Still Don't Know",
+      sceneArt: '<rect x="7" y="8" width="15" height="15" rx="2.5" opacity="0.45"/><rect x="34" y="34" width="15" height="15" rx="2.5" opacity="0.45"/><path d="M27 17a8.3 8.3 0 1 1 11.6 7.6c-3.1 2.2-3.1 5.1-3.1 8.5" stroke-width="3.4"/><circle cx="35.5" cy="37.5" r="2.2" fill="#21201C"/>',
+      samState: "neutral",
+      lines: [
+        "So — does packaged food actually cause anxiety and sadness in kids? Honestly, scientists don't have one clean answer yet.",
+        "Some studies find a real link. Others find it fades once you look closer. Almost all of them agree it's tangled up with income, sleep, and access, not just food.",
+        "\"Partly yes, partly complicated\" isn't a failed answer. It's what makes this worth studying more, especially for kids and teens."
+      ],
+      science: "This project pulled together five sources and landed on genuinely mixed evidence rather than a tidy conclusion — which, for early research on a topic this complex, is a pretty normal and honest place to land."
+    }
+  };
+
+  var PODS_ORDER = ["snack","mood","nuance","gut","money","unknown"];
+
+  /* ------------------------------------------------------------
+     SAM FACE VARS
+     ------------------------------------------------------------ */
+  function samFaceMarkup(state){
+    var faces = {
+      neutral: {
+        mouth: 'M92 138c8 8 28 8 36 0',
+        brow: '',
+        cheeks: true
+      },
+      foggy: {
+        mouth: 'M92 142c8-4 28-4 36 0',
+        brow: 'M84 108l14 5M136 108l-14 5',
+        cheeks: false
+      },
+      curious: {
+        mouth: 'M100 136a10 8 0 0 0 20 0',
+        brow: 'M84 104l16-2M120 102l16 2',
+        cheeks: true
+      },
+      thoughtful: {
+        mouth: 'M96 140c6 3 26 3 32-2',
+        brow: 'M84 106l16 3M136 106l-16 3',
+        cheeks: false
+      },
+      puzzled: {
+        mouth: 'M98 140q18 6 32-4',
+        brow: 'M82 104l18 6M140 104l-18 6',
+        cheeks: false
+      }
+    };
+    var f = faces[state] || faces.neutral;
+    var out = '';
+    out += '<ellipse cx="110" cy="206" rx="46" ry="8" fill="#21201C" opacity="0.12"/>';
+    out += '<circle cx="110" cy="110" r="66" fill="#F4B93E" stroke="#21201C" stroke-width="5"/>';
+    if(f.brow){
+      out += '<path d="'+f.brow+'" fill="none" stroke="#21201C" stroke-width="4.5" stroke-linecap="round"/>';
+    }
+    if(f.cheeks){
+      out += '<circle cx="78" cy="126" r="9" fill="#E2432B" opacity="0.35"/><circle cx="142" cy="126" r="9" fill="#E2432B" opacity="0.35"/>';
+    }
+    out += '<circle cx="90" cy="108" r="6" fill="#21201C"/><circle cx="132" cy="108" r="6" fill="#21201C"/>';
+    out += '<path d="'+f.mouth+'" fill="none" stroke="#21201C" stroke-width="5" stroke-linecap="round"/>';
+    return out;
+  }
+
+  /* ------------------------------------------------------------
+     STATE
+     ------------------------------------------------------------ */
+  var visited = {};
+  PODS_ORDER.forEach(function(id){ visited[id] = false; });
+
+  var overlay = document.getElementById('overlay');
+  var panel = document.getElementById('panel');
+  var panelKicker = document.getElementById('panelKicker');
+  var panelTitle = document.getElementById('panelTitle');
+  var storyLines = document.getElementById('storyLines');
+  var scienceText = document.getElementById('scienceText');
+  var sceneArt = document.getElementById('sceneArt');
+  var samMini = document.getElementById('samMini');
+  var nextPodBtn = document.getElementById('nextPodBtn');
+  var nextPodLabel = document.getElementById('nextPodLabel');
+  var trackerComplete = document.getElementById('trackerComplete');
+
+  var lastFocused = null;
+
+  function openPod(id){
+    var data = PODS[id];
+    if(!data) return;
+
+    panel.style.setProperty('--accent', data.accent);
+    panel.style.setProperty('--accent-deep', data.accentDeep);
+    panelKicker.textContent = data.kicker;
+    panelTitle.textContent = data.title;
+
+    storyLines.innerHTML = '';
+    data.lines.forEach(function(line){
+      var p = document.createElement('p');
+      p.className = 'story-line';
+      p.textContent = line;
+      storyLines.appendChild(p);
+    });
+    scienceText.innerHTML = data.science;
+
+    sceneArt.innerHTML = data.sceneArt;
+
+    samMini.innerHTML = samFaceMarkup(data.samState);
+
+    var nextId = PODS_ORDER[(data.order + 1) % PODS_ORDER.length];
+    var isLast = data.order === PODS_ORDER.length - 1;
+    nextPodLabel.textContent = isLast ? 'Back to the start' : ('Next: ' + PODS[nextId].title);
+    nextPodBtn.setAttribute('data-target', nextId);
+
+    var pillar = document.querySelector('.pod[data-pod="'+id+'"]');
+    lastFocused = document.activeElement;
+    overlay.classList.add('open');
+    document.getElementById('panelClose').focus();
+
+    if(!visited[id]){
+      visited[id] = true;
+      if(pillar) pillar.setAttribute('data-visited', 'true');
+      var dot = document.querySelector('.tracker-dot[data-dot="'+id+'"]');
+      if(dot) dot.setAttribute('data-done', 'true');
+      checkComplete();
+    }
+  }
+
+  function closePod(){
+    overlay.classList.remove('open');
+    if(lastFocused && typeof lastFocused.focus === 'function'){
+      lastFocused.focus();
+    }
+  }
+
+  function checkComplete(){
+    var allDone = PODS_ORDER.every(function(id){ return visited[id]; });
+    if(allDone){
+      trackerComplete.classList.add('show');
+      setTimeout(function(){ trackerComplete.classList.remove('show'); }, 3600);
+    }
+  }
+
+  document.querySelectorAll('.pod').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      openPod(btn.getAttribute('data-pod'));
+    });
+  });
+
+  document.getElementById('panelClose').addEventListener('click', closePod);
+  overlay.addEventListener('click', function(e){
+    if(e.target === overlay) closePod();
+  });
+  nextPodBtn.addEventListener('click', function(){
+    openPod(nextPodBtn.getAttribute('data-target'));
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){
+      if(overlay.classList.contains('open')) closePod();
+      if(grownupDrawer.classList.contains('open')) closeDrawer();
+    }
+  });
+
+  /* ------------------------------------------------------------
+     GROWN-UP page
+     ------------------------------------------------------------ */
+  var grownupToggle = document.getElementById('grownupToggle');
+  var grownupDrawer = document.getElementById('grownupDrawer');
+  var drawerClose = document.getElementById('drawerClose');
+  var lastFocusedDrawer = null;
+
+  function openDrawer(){
+    lastFocusedDrawer = document.activeElement;
+    grownupDrawer.classList.add('open');
+    drawerClose.focus();
+  }
+  function closeDrawer(){
+    grownupDrawer.classList.remove('open');
+    if(lastFocusedDrawer && typeof lastFocusedDrawer.focus === 'function'){
+      lastFocusedDrawer.focus();
+    }
+  }
+  grownupToggle.addEventListener('click', openDrawer);
+  drawerClose.addEventListener('click', closeDrawer);
+  grownupDrawer.addEventListener('click', function(e){
+    if(e.target === grownupDrawer) closeDrawer();
+  });
+
+})();
+</script>
+</body>
+</html>
